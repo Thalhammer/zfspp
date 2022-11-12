@@ -7,6 +7,10 @@
 #include <libzfs.h>
 #include <sys/fs/zfs.h>
 
+extern "C" {
+int zfs_validate_name(libzfs_handle_t* hdl, const char* path, int type, boolean_t modifying);
+}
+
 namespace zfspp {
 
 	class zfs_error_category : public std::error_category {
@@ -116,10 +120,9 @@ namespace zfspp {
 	}
 
 	zfs::zfs() : m_handle(libzfs_init()) {
-		if(m_handle == nullptr)
-			throw std::runtime_error("failed to initialize libzfs");
+		if (m_handle == nullptr) throw std::runtime_error("failed to initialize libzfs");
 		m_eventfd = open("/dev/zfs", O_RDWR | O_CLOEXEC | O_NONBLOCK);
-		if(m_eventfd < 0) {
+		if (m_eventfd < 0) {
 			auto error = errno;
 			libzfs_fini(m_handle);
 			throw std::system_error(error, std::system_category());
@@ -129,26 +132,28 @@ namespace zfspp {
 	zfs::~zfs() {
 		std::unique_lock lck{m_mutex};
 		if (m_handle) libzfs_fini(m_handle);
-		if(m_eventfd >= 0)
-			::close(m_eventfd);
+		if (m_eventfd >= 0) ::close(m_eventfd);
 	}
 
 	bool zfs::next_event(nv_list& data, size_t* n_dropped, bool block) {
 		std::unique_lock lck{m_mutex};
 		nvlist_t* nvl{};
-        int drop{};
-        auto res = zpool_events_next(m_handle, &nvl, &drop, block ? B_FALSE : B_TRUE, m_eventfd);
+		int drop{};
+		auto res = zpool_events_next(m_handle, &nvl, &drop, block ? B_FALSE : B_TRUE, m_eventfd);
 		data = nv_list(nvl, nv_list::adopt_list{});
-		if(res != 0) {
-			if(libzfs_errno(m_handle) == EZFS_INTR) return false;
+		if (res != 0) {
+			if (libzfs_errno(m_handle) == EZFS_INTR) return false;
 			throw std::system_error(libzfs_errno(m_handle), zfs_category());
 		}
-		if(n_dropped) *n_dropped = drop;
+		if (n_dropped) *n_dropped = drop;
 		return nvl != nullptr;
 	}
 
-	bool validate_dataset_name(const char* name, dataset_type dt) noexcept {
-		return zfs_name_valid(name, static_cast<zfs_type_t>(dt)) == B_TRUE;
+	bool zfs::validate_dataset_name(const char* name, dataset_type dt, std::string* reason) {
+		std::unique_lock lck{m_mutex};
+		bool res = zfs_validate_name(m_handle, name, static_cast<zfs_type_t>(dt), B_FALSE) != B_FALSE;
+		if (!res && reason) *reason = libzfs_error_description(m_handle);
+		return res;
 	}
 
 } // namespace zfspp

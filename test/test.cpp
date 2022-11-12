@@ -50,7 +50,7 @@ TEST(ZFSPP_Test, Dummy) {
         std::cout << pool.config().to_json(true) << std::endl;
         std::cout << pool.features().to_json() << std::endl;
     }
-    if(1) {
+    if(0) {
         zfspp::zfs client;
         zfspp::nv_list child;
         child.add_string("type", "file");
@@ -68,5 +68,11 @@ TEST(ZFSPP_Test, Dummy) {
         std::cout << pool.config().to_json() << std::endl;
         std::cout << pool.features().to_json() << std::endl;
         pool.destroy();
+    }
+    if(1) {
+        zfspp::zfs client;
+        std::string reason;
+        client.validate_dataset_name("helloworld", zfspp::dataset_type::filesystem, &reason);
+        std::cout << reason << std::endl;
     }
 }

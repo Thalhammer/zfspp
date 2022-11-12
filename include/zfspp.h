@@ -207,6 +207,8 @@ namespace zfspp {
 		std::vector<pool> list_pools();
 
 		bool next_event(nv_list& data, size_t* n_dropped = nullptr, bool block = false);
+
+		bool validate_dataset_name(const char* name, dataset_type dt, std::string* reason = nullptr);
 	};
 
 	enum class pool_status {
@@ -369,5 +371,4 @@ namespace zfspp {
 	}
 
 	const char* nv_type_name(nv_type dt) noexcept;
-	bool validate_dataset_name(const char* name, dataset_type dt) noexcept;
 } // namespace zfspp
