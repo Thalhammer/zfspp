@@ -179,7 +179,7 @@ namespace zfspp {
 	};
 
 	class zfs {
-		std::mutex m_mutex;
+		std::recursive_mutex m_mutex;
 		libzfs_handle* m_handle{};
 		int m_eventfd{-1};
 
