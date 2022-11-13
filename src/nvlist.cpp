@@ -391,7 +391,7 @@ namespace zfspp {
 		static void to_json_recursive(const nv_list& list, std::string indent, std::string& res, bool with_types) {
 			res += "{";
 			bool first = true;
-			for (auto& e : list) {
+			for (const auto& e : list) {
 				if (!first) res += ",";
 				first = false;
 				res += "\n";
@@ -400,30 +400,29 @@ namespace zfspp {
 				res += "\": ";
 				if (with_types) res += "<" + std::string(nv_type_name(e.type())) + "> ";
 				switch (e.type()) {
-					using enum zfspp::nv_type;
-				case boolean: res += to_string(e.as_boolean()); break;
-				case byte: res += to_string(e.as_byte()); break;
-				case int16: res += to_string(e.as_int16()); break;
-				case uint16: res += to_string(e.as_uint16()); break;
-				case int32: res += to_string(e.as_int32()); break;
-				case uint32: res += to_string(e.as_uint32()); break;
-				case int64: res += to_string(e.as_int64()); break;
-				case uint64: res += to_string(e.as_uint64()); break;
-				case string: res += "\"" + escape_string_json(e.as_string()) + "\""; break;
-				case nvlist: to_json_recursive(e.as_nvlist(), indent + "\t", res, with_types); break;
-				case boolean_array: res += array_to_string(e.as_boolean_array()); break;
-				case byte_array: res += array_to_string(e.as_byte_array()); break;
-				case int16_array: res += array_to_string(e.as_int16_array()); break;
-				case uint16_array: res += array_to_string(e.as_uint16_array()); break;
-				case int32_array: res += array_to_string(e.as_int32_array()); break;
-				case uint32_array: res += array_to_string(e.as_uint32_array()); break;
-				case int64_array: res += array_to_string(e.as_int64_array()); break;
-				case uint64_array: res += array_to_string(e.as_uint64_array()); break;
-				case string_array: res += array_to_string(e.as_uint64_array(), true); break;
-				case nvlist_array: {
+				case nv_type::boolean: res += to_string(e.as_boolean()); break;
+				case nv_type::byte: res += to_string(e.as_byte()); break;
+				case nv_type::int16: res += to_string(e.as_int16()); break;
+				case nv_type::uint16: res += to_string(e.as_uint16()); break;
+				case nv_type::int32: res += to_string(e.as_int32()); break;
+				case nv_type::uint32: res += to_string(e.as_uint32()); break;
+				case nv_type::int64: res += to_string(e.as_int64()); break;
+				case nv_type::uint64: res += to_string(e.as_uint64()); break;
+				case nv_type::string: res += "\"" + escape_string_json(e.as_string()) + "\""; break;
+				case nv_type::nvlist: to_json_recursive(e.as_nvlist(), indent + "\t", res, with_types); break;
+				case nv_type::boolean_array: res += array_to_string(e.as_boolean_array()); break;
+				case nv_type::byte_array: res += array_to_string(e.as_byte_array()); break;
+				case nv_type::int16_array: res += array_to_string(e.as_int16_array()); break;
+				case nv_type::uint16_array: res += array_to_string(e.as_uint16_array()); break;
+				case nv_type::int32_array: res += array_to_string(e.as_int32_array()); break;
+				case nv_type::uint32_array: res += array_to_string(e.as_uint32_array()); break;
+				case nv_type::int64_array: res += array_to_string(e.as_int64_array()); break;
+				case nv_type::uint64_array: res += array_to_string(e.as_uint64_array()); break;
+				case nv_type::string_array: res += array_to_string(e.as_uint64_array(), true); break;
+				case nv_type::nvlist_array: {
 					res += "[ ";
 					bool arrfirst = true;
-					for (auto i : e.as_nvlist_array()) {
+					for (const auto& i : e.as_nvlist_array()) {
 						if (!arrfirst) res += ",\n";
 						arrfirst = false;
 						to_json_recursive(i, indent + "\t", res, with_types);
