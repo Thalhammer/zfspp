@@ -8,6 +8,7 @@
 #include <mutex>
 #include <set>
 #include <span>
+#include <stdexcept>
 #include <string_view>
 #include <system_error>
 #include <thread>
@@ -136,8 +137,18 @@ namespace zfspp {
 		std::set<std::string_view> keys() const;
 
 		nv_pair begin() const noexcept;
+		nv_pair cbegin() const noexcept;
 		nv_pair end() const noexcept { return nv_pair(); }
+		nv_pair cend() const noexcept { return nv_pair(); }
 		nv_pair find(const char* key) const noexcept;
+
+		nv_pair at(const char* key) const {
+			auto pair = find(key);
+			if (pair == end()) throw std::out_of_range(key);
+			return pair;
+		}
+
+		bool erase(const char* key);
 
 		void add_boolean(const char* key);
 		void add_boolean_value(const char* key, bool val);
@@ -312,6 +323,7 @@ namespace zfspp {
 		const zfs& client() const noexcept { return *m_parent; }
 
 		std::string_view name() const noexcept;
+		std::string_view relative_name() const noexcept;
 		pool pool() const noexcept;
 		std::string_view pool_name() const noexcept;
 		dataset_type type() const noexcept;
@@ -332,7 +344,8 @@ namespace zfspp {
 		dataset create_child(const char* name, dataset_type type = dataset_type::filesystem, const nv_list& opts = {});
 		dataset clone(const char* name, const nv_list& opts = {});
 		void destroy(bool defer = false);
-		void mount();
+		void mount(const std::string& options = {}, int flags = 0);
+		void mount_at(const std::string& mountpoint, const std::string& options = {}, int flags = 0);
 		void unmount(bool force = false);
 	};
 

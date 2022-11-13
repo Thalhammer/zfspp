@@ -171,6 +171,11 @@ namespace zfspp {
 		return {m_handle, res};
 	}
 
+	bool nv_list::erase(const char* key) {
+		if(m_handle == nullptr) return false;
+		return nvlist_remove_all(m_handle, key) == 0;
+	}
+
 	void nv_list::add_boolean(const char* key) {
 		ensure_allocated();
 		auto res = nvlist_add_boolean(m_handle, key);

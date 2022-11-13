@@ -44,11 +44,16 @@ TEST(ZFSPP_Test, Dummy) {
         std::cout << fs.user_properties().to_json() << std::endl;
         fs.set_property("random:user", "hello world");
     }
-    if(0) {
+    if(1) {
         zfspp::zfs client;
-        auto pool = client.open_pool("testpool");
-        std::cout << pool.config().to_json(true) << std::endl;
-        std::cout << pool.features().to_json() << std::endl;
+        std::function<void(std::string, const zfspp::dataset&)> dump = [&](std::string indent, const zfspp::dataset& ds) {
+            std::cout << indent << "|- " << ds.relative_name() << std::endl;
+            indent += "| ";
+            for(auto& e : ds.filesystems())
+                dump(indent, e);
+        };
+        for(auto& e : client.root_datasets())
+            dump("", e);
     }
     if(0) {
         zfspp::zfs client;
@@ -69,7 +74,7 @@ TEST(ZFSPP_Test, Dummy) {
         std::cout << pool.features().to_json() << std::endl;
         pool.destroy();
     }
-    if(1) {
+    if(0) {
         zfspp::zfs client;
         std::string reason;
         client.validate_dataset_name("helloworld", zfspp::dataset_type::filesystem, &reason);

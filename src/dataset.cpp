@@ -80,6 +80,16 @@ namespace zfspp {
 
 	std::string_view dataset::name() const noexcept { return zfs_get_name(m_hdl); }
 
+	std::string_view dataset::relative_name() const noexcept {
+		auto name = this->name();
+		auto pos = name.rfind('/');
+		if (pos == std::string::npos)
+			pos = 0;
+		else
+			pos++;
+		return name.substr(pos);
+	}
+
 	pool dataset::pool() const noexcept { return {*m_parent, zfs_get_pool_handle(m_hdl)}; }
 
 	std::string_view dataset::pool_name() const noexcept { return zfs_get_pool_name(m_hdl); }
@@ -142,27 +152,25 @@ namespace zfspp {
 		return std::move(data.result);
 	}
 
-    nv_list dataset::properties() const {
-        std::unique_lock lck{*m_parent};
-        auto res = zfs_get_all_props(m_hdl);
-        if(res == nullptr)
-            throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
-        return nv_list{res};
-    }
+	nv_list dataset::properties() const {
+		std::unique_lock lck{*m_parent};
+		auto res = zfs_get_all_props(m_hdl);
+		if (res == nullptr) throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
+		return nv_list{res};
+	}
 
-    nv_list dataset::user_properties() const {
-        std::unique_lock lck{*m_parent};
-        auto res = zfs_get_user_props(m_hdl);
-        if(res == nullptr)
-            throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
-        return nv_list{res};
-    }
+	nv_list dataset::user_properties() const {
+		std::unique_lock lck{*m_parent};
+		auto res = zfs_get_user_props(m_hdl);
+		if (res == nullptr) throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
+		return nv_list{res};
+	}
 
-    void dataset::set_property(const char* name, const char* value) {
-        std::unique_lock lck{*m_parent};
-        if(zfs_prop_set(m_hdl, name, value) != 0)
-            throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
-    }
+	void dataset::set_property(const char* name, const char* value) {
+		std::unique_lock lck{*m_parent};
+		if (zfs_prop_set(m_hdl, name, value) != 0)
+			throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
+	}
 
 	dataset dataset::create_snapshot(const char* name, bool recursive, const nv_list& opts) {
 		std::string fullname{this->name()};
@@ -202,10 +210,18 @@ namespace zfspp {
 			throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
 	}
 
-	void dataset::mount() {
+	void dataset::mount(const std::string& options, int flags) {
 		if (m_hdl == nullptr) throw std::logic_error("invalid dataset handle");
 		std::unique_lock lck{*m_parent};
-		if (zfs_mount(m_hdl, nullptr, 0) != 0) throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
+		if (zfs_mount(m_hdl, options.c_str(), flags) != 0)
+			throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
+	}
+
+	void dataset::mount_at(const std::string& mountpoint, const std::string& options, int flags) {
+		if (m_hdl == nullptr) throw std::logic_error("invalid dataset handle");
+		std::unique_lock lck{*m_parent};
+		if (zfs_mount_at(m_hdl, options.c_str(), flags, mountpoint.c_str()) != 0)
+			throw std::system_error(libzfs_errno(m_parent->raw()), zfs_category());
 	}
 
 	void dataset::unmount(bool force) {
