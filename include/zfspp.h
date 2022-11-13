@@ -324,7 +324,7 @@ namespace zfspp {
 
 		std::string_view name() const noexcept;
 		std::string_view relative_name() const noexcept;
-		pool pool() const noexcept;
+		pool parent_pool() const noexcept;
 		std::string_view pool_name() const noexcept;
 		dataset_type type() const noexcept;
 		std::string mountpoint() const noexcept;

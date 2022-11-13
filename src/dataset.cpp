@@ -90,7 +90,7 @@ namespace zfspp {
 		return name.substr(pos);
 	}
 
-	pool dataset::pool() const noexcept { return {*m_parent, zfs_get_pool_handle(m_hdl)}; }
+	pool dataset::parent_pool() const noexcept { return {*m_parent, zfs_get_pool_handle(m_hdl)}; }
 
 	std::string_view dataset::pool_name() const noexcept { return zfs_get_pool_name(m_hdl); }
 
