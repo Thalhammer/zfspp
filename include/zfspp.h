@@ -7,9 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
-#include <span>
 #include <stdexcept>
-#include <string_view>
 #include <system_error>
 #include <thread>
 #include <vector>
@@ -73,7 +71,7 @@ namespace zfspp {
 		::nvpair* raw() const noexcept { return m_pair; }
 		::nvlist* raw_list() const noexcept { return m_list; }
 
-		std::string_view key() const noexcept;
+		std::string key() const noexcept;
 		nv_type type() const noexcept;
 
 		bool as_boolean() const;
@@ -86,7 +84,7 @@ namespace zfspp {
 		uint32_t as_uint32() const;
 		int64_t as_int64() const;
 		uint64_t as_uint64() const;
-		std::string_view as_string() const;
+		std::string as_string() const;
 		nv_list as_nvlist() const;
 
 		std::vector<bool> as_boolean_array() const;
@@ -99,7 +97,7 @@ namespace zfspp {
 		std::vector<uint32_t> as_uint32_array() const;
 		std::vector<int64_t> as_int64_array() const;
 		std::vector<uint64_t> as_uint64_array() const;
-		std::vector<std::string_view> as_string_array() const;
+		std::vector<std::string> as_string_array() const;
 		std::vector<nv_list> as_nvlist_array() const;
 
 		nv_pair& operator*() noexcept { return *this; }
@@ -134,7 +132,7 @@ namespace zfspp {
 		void clear();
 		size_t size() const noexcept;
 		bool empty() const noexcept { return begin() == end(); }
-		std::set<std::string_view> keys() const;
+		std::set<std::string> keys() const;
 
 		nv_pair begin() const noexcept;
 		nv_pair cbegin() const noexcept;
@@ -163,18 +161,18 @@ namespace zfspp {
 		void add_uint64(const char* key, uint64_t val);
 		void add_string(const char* key, const char* val);
 		void add_nvlist(const char* key, const nv_list& val);
-		void add_boolean_array(const char* key, std::span<const bool> val);
-		void add_byte_array(const char* key, std::span<const uchar_t> val);
-		void add_int8_array(const char* key, std::span<const int8_t> val);
-		void add_uint8_array(const char* key, std::span<const uint8_t> val);
-		void add_int16_array(const char* key, std::span<const int16_t> val);
-		void add_uint16_array(const char* key, std::span<const uint16_t> val);
-		void add_int32_array(const char* key, std::span<const int32_t> val);
-		void add_uint32_array(const char* key, std::span<const uint32_t> val);
-		void add_int64_array(const char* key, std::span<const int64_t> val);
-		void add_uint64_array(const char* key, std::span<const uint64_t> val);
-		void add_string_array(const char* key, std::span<const char* const> val);
-		void add_nvlist_array(const char* key, std::span<const nv_list> val);
+		void add_boolean_array(const char* key, const bool* val, size_t len);
+		void add_byte_array(const char* key, const uchar_t* val, size_t len);
+		void add_int8_array(const char* key, const int8_t* val, size_t len);
+		void add_uint8_array(const char* key, const uint8_t* val, size_t len);
+		void add_int16_array(const char* key, const int16_t* val, size_t len);
+		void add_uint16_array(const char* key, const uint16_t* val, size_t len);
+		void add_int32_array(const char* key, const int32_t* val, size_t len);
+		void add_uint32_array(const char* key, const uint32_t* val, size_t len);
+		void add_int64_array(const char* key, const int64_t* val, size_t len);
+		void add_uint64_array(const char* key, const uint64_t* val, size_t len);
+		void add_string_array(const char* key, const char* const* val, size_t len);
+		void add_nvlist_array(const char* key, const nv_list* val, size_t len);
 		void add_hrtime(const char* key, hrtime_t);
 
 		std::string to_json(bool with_types = false) const;
@@ -282,8 +280,8 @@ namespace zfspp {
 		zfs& client() noexcept { return *m_parent; }
 		const zfs& client() const noexcept { return *m_parent; }
 
-		std::string_view name() const noexcept;
-		std::string_view state_str() const noexcept;
+		std::string name() const noexcept;
+		std::string state_str() const noexcept;
 		int state() const noexcept;
 		pool_status status() const noexcept;
 
@@ -322,10 +320,10 @@ namespace zfspp {
 		zfs& client() noexcept { return *m_parent; }
 		const zfs& client() const noexcept { return *m_parent; }
 
-		std::string_view name() const noexcept;
-		std::string_view relative_name() const noexcept;
+		std::string name() const noexcept;
+		std::string relative_name() const noexcept;
 		pool parent_pool() const noexcept;
-		std::string_view pool_name() const noexcept;
+		std::string pool_name() const noexcept;
 		dataset_type type() const noexcept;
 		std::string mountpoint() const noexcept;
 
@@ -366,7 +364,7 @@ namespace zfspp {
 		event_watcher(zfs& parent);
 		~event_watcher();
 
-		void set_checkpoint(std::span<uint64_t, 3> checkpoint);
+		void set_checkpoint(std::array<uint64_t, 3> checkpoint);
 		std::array<uint64_t, 3> checkpoint() const noexcept;
 
 		void set_on_event(std::function<void(const nv_list&)> cb);

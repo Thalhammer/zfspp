@@ -18,11 +18,11 @@ namespace zfspp {
 			"hrtime",		 "nvlist",		"nvlist_array", "boolean_value", "int8",		 "uint8",
 			"boolean_array", "int8_array",	"uint88_array",
 		};
-		if (static_cast<size_t>(dt) >= std::size(types)) return types[0];
+		if (static_cast<size_t>(dt) >= sizeof(types)/sizeof(types[0])) return types[0];
 		return types[static_cast<size_t>(dt)];
 	}
 
-	std::string_view nv_pair::key() const noexcept { return m_pair ? nvpair_name(m_pair) : ""; }
+	std::string nv_pair::key() const noexcept { return m_pair ? nvpair_name(m_pair) : ""; }
 
 	nv_type nv_pair::type() const noexcept { return static_cast<nv_type>(nvpair_type(m_pair)); }
 
@@ -59,7 +59,7 @@ namespace zfspp {
 	uint32_t nv_pair::as_uint32() const { return nvpas(m_pair, &nvpair_value_uint32); }
 	int64_t nv_pair::as_int64() const { return nvpas(m_pair, &nvpair_value_int64); }
 	uint64_t nv_pair::as_uint64() const { return nvpas(m_pair, &nvpair_value_uint64); }
-	std::string_view nv_pair::as_string() const { return nvpas(m_pair, &nvpair_value_string); }
+	std::string nv_pair::as_string() const { return nvpas(m_pair, &nvpair_value_string); }
 	nv_list nv_pair::as_nvlist() const { return nvpas(m_pair, &nvpair_value_nvlist); }
 	std::vector<bool> nv_pair::as_boolean_array() const {
 		if (type() == nv_type::boolean) return {true};
@@ -80,8 +80,8 @@ namespace zfspp {
 	std::vector<uint64_t> nv_pair::as_uint64_array() const {
 		return nvpasa<uint64_t>(m_pair, &nvpair_value_uint64_array);
 	}
-	std::vector<std::string_view> nv_pair::as_string_array() const {
-		return nvpasa<std::string_view>(m_pair, &nvpair_value_string_array);
+	std::vector<std::string> nv_pair::as_string_array() const {
+		return nvpasa<std::string>(m_pair, &nvpair_value_string_array);
 	}
 	std::vector<nv_list> nv_pair::as_nvlist_array() const {
 		return nvpasa<nv_list>(m_pair, &nvpair_value_nvlist_array);
@@ -148,8 +148,8 @@ namespace zfspp {
 		return res;
 	}
 
-	std::set<std::string_view> nv_list::keys() const {
-		std::set<std::string_view> res;
+	std::set<std::string> nv_list::keys() const {
+		std::set<std::string> res;
 		if (m_handle == nullptr) return res;
 		auto pair = nvlist_next_nvpair(m_handle, nullptr);
 		while (pair) {
@@ -261,84 +261,84 @@ namespace zfspp {
 		}
 	}
 
-	void nv_list::add_boolean_array(const char* key, std::span<const bool> val) {
+	void nv_list::add_boolean_array(const char* key, const bool* val, size_t len) {
 		ensure_allocated();
 		std::vector<boolean_t> temp;
-		temp.resize(val.size());
-		for (size_t i = 0; i < val.size(); i++)
+		temp.resize(len);
+		for (size_t i = 0; i < len; i++)
 			temp[i] = val[i] ? B_TRUE : B_FALSE;
 		auto res = nvlist_add_boolean_array(m_handle, key, temp.data(), temp.size());
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_byte_array(const char* key, std::span<const uchar_t> val) {
+	void nv_list::add_byte_array(const char* key, const uchar_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_byte_array(m_handle, key, const_cast<uchar_t*>(val.data()), val.size());
+		auto res = nvlist_add_byte_array(m_handle, key, const_cast<uchar_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_int8_array(const char* key, std::span<const int8_t> val) {
+	void nv_list::add_int8_array(const char* key, const int8_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_int8_array(m_handle, key, const_cast<int8_t*>(val.data()), val.size());
+		auto res = nvlist_add_int8_array(m_handle, key, const_cast<int8_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_uint8_array(const char* key, std::span<const uint8_t> val) {
+	void nv_list::add_uint8_array(const char* key, const uint8_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_uint8_array(m_handle, key, const_cast<uint8_t*>(val.data()), val.size());
+		auto res = nvlist_add_uint8_array(m_handle, key, const_cast<uint8_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_int16_array(const char* key, std::span<const int16_t> val) {
+	void nv_list::add_int16_array(const char* key, const int16_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_int16_array(m_handle, key, const_cast<int16_t*>(val.data()), val.size());
+		auto res = nvlist_add_int16_array(m_handle, key, const_cast<int16_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_uint16_array(const char* key, std::span<const uint16_t> val) {
+	void nv_list::add_uint16_array(const char* key, const uint16_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_uint16_array(m_handle, key, const_cast<uint16_t*>(val.data()), val.size());
+		auto res = nvlist_add_uint16_array(m_handle, key, const_cast<uint16_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_int32_array(const char* key, std::span<const int32_t> val) {
+	void nv_list::add_int32_array(const char* key, const int32_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_int32_array(m_handle, key, const_cast<int32_t*>(val.data()), val.size());
+		auto res = nvlist_add_int32_array(m_handle, key, const_cast<int32_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_uint32_array(const char* key, std::span<const uint32_t> val) {
+	void nv_list::add_uint32_array(const char* key, const uint32_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_uint32_array(m_handle, key, const_cast<uint32_t*>(val.data()), val.size());
+		auto res = nvlist_add_uint32_array(m_handle, key, const_cast<uint32_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_int64_array(const char* key, std::span<const int64_t> val) {
+	void nv_list::add_int64_array(const char* key, const int64_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_int64_array(m_handle, key, const_cast<int64_t*>(val.data()), val.size());
+		auto res = nvlist_add_int64_array(m_handle, key, const_cast<int64_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_uint64_array(const char* key, std::span<const uint64_t> val) {
+	void nv_list::add_uint64_array(const char* key, const uint64_t* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_uint64_array(m_handle, key, const_cast<uint64_t*>(val.data()), val.size());
+		auto res = nvlist_add_uint64_array(m_handle, key, const_cast<uint64_t*>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_string_array(const char* key, std::span<const char* const> val) {
+	void nv_list::add_string_array(const char* key, const char* const* val, size_t len) {
 		ensure_allocated();
-		auto res = nvlist_add_string_array(m_handle, key, const_cast<char *const *>(val.data()), val.size());
+		auto res = nvlist_add_string_array(m_handle, key, const_cast<char *const *>(val), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
-	void nv_list::add_nvlist_array(const char* key, std::span<const nv_list> val) {
+	void nv_list::add_nvlist_array(const char* key, const nv_list* val, size_t len) {
 		ensure_allocated();
 		std::vector<nvlist_t*> temp;
-		temp.resize(val.size());
-		for (size_t i = 0; i < val.size(); i++) {
+		temp.resize(len);
+		for (size_t i = 0; i < len; i++) {
 			temp[i] = val[i].raw();
 		}
-		auto res = nvlist_add_nvlist_array(m_handle, key, temp.data(), val.size());
+		auto res = nvlist_add_nvlist_array(m_handle, key, temp.data(), len);
 		if (res != 0) throw std::system_error(res, std::system_category());
 	}
 
@@ -349,7 +349,7 @@ namespace zfspp {
 	}
 
 	namespace {
-		static std::string escape_string_json(std::string_view in) {
+		static std::string escape_string_json(const std::string& in) {
 			constexpr const char* hextable = "0123456789ABCDEF";
 			std::string res;
 			res.reserve(in.size() * 1.10); // Rough guess of max 10% size increase
@@ -369,7 +369,7 @@ namespace zfspp {
 		}
 
 		using std::to_string;
-		std::string to_string(std::string_view s) { return std::string{s}; }
+		std::string to_string(const std::string& s) { return std::string{s}; }
 		std::string to_string(bool b) { return b ? "true" : "false"; }
 
 		template<typename T>

@@ -65,7 +65,7 @@ TEST(ZFSPP_Test, Dummy) {
 
         zfspp::nv_list root;
         root.add_string("type", "root");
-        root.add_nvlist_array("children", {&child, 1});
+        root.add_nvlist_array("children", &child, 1);
 
         std::cout << "create" << std::endl;
         auto pool = client.create_pool("testpool2", root, {}, {});

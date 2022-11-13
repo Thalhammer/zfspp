@@ -19,7 +19,7 @@ add_library(zfspp
 )
 target_link_libraries(zfspp PUBLIC PkgConfig::libzfs Threads::Threads)
 target_include_directories(zfspp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_compile_features(zfspp PUBLIC cxx_std_20)
+target_compile_features(zfspp PUBLIC cxx_std_11)
 
 if(ZFSPP_BUILD_TEST)
   enable_testing()

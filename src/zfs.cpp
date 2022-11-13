@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <mutex>
 #include <stdexcept>
 #include <sys/stdtypes.h>
 #include <system_error>
@@ -115,7 +116,7 @@ namespace zfspp {
 	};
 
 	const std::error_category& zfs_category() noexcept {
-		constinit static zfs_error_category instance;
+		const static zfs_error_category instance;
 		return instance;
 	}
 
@@ -130,13 +131,13 @@ namespace zfspp {
 	}
 
 	zfs::~zfs() {
-		std::unique_lock lck{m_mutex};
+		std::unique_lock<std::recursive_mutex> lck{m_mutex};
 		if (m_handle) libzfs_fini(m_handle);
 		if (m_eventfd >= 0) ::close(m_eventfd);
 	}
 
 	bool zfs::next_event(nv_list& data, size_t* n_dropped, bool block) {
-		std::unique_lock lck{m_mutex};
+		std::unique_lock<std::recursive_mutex> lck{m_mutex};
 		nvlist_t* nvl{};
 		int drop{};
 		auto res = zpool_events_next(m_handle, &nvl, &drop, block ? B_FALSE : B_TRUE, m_eventfd);
@@ -150,7 +151,7 @@ namespace zfspp {
 	}
 
 	bool zfs::validate_dataset_name(const char* name, dataset_type dt, std::string* reason) {
-		std::unique_lock lck{m_mutex};
+		std::unique_lock<std::recursive_mutex> lck{m_mutex};
 		bool res = zfs_validate_name(m_handle, name, static_cast<zfs_type_t>(dt), B_FALSE) != B_FALSE;
 		if (!res && reason) *reason = libzfs_error_description(m_handle);
 		return res;
