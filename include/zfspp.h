@@ -362,6 +362,10 @@ namespace zfspp {
 
 	public:
 		event_watcher(zfs& parent);
+		event_watcher(const event_watcher&) = delete;
+		event_watcher(event_watcher&&) = delete;
+		event_watcher& operator=(const event_watcher&) = delete;
+		event_watcher& operator=(event_watcher&&) = delete;
 		~event_watcher();
 
 		void set_checkpoint(std::array<uint64_t, 3> checkpoint);
